@@ -9,9 +9,11 @@ from keras.layers import Flatten
 from keras.layers import Dense
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint, CSVLogger
 
-from scipy.ndimage import imread
-from scipy.misc import imresize, imsave
+#from scipy.ndimage import imread
+#from scipy.misc import imresize, imsave, imread
+import cv2
 
 IMG_SIZE = 24
 
@@ -78,14 +80,20 @@ def train(train_generator, val_generator):
 	                    steps_per_epoch=STEP_SIZE_TRAIN,
 	                    validation_data=val_generator,
 	                    validation_steps=STEP_SIZE_VALID,
+						callbacks=[checkpointer],
 	                    epochs=20
 	)
 
 def predict(img, model):
-	img = Image.fromarray(img, 'RGB').convert('L')
-	img = imresize(img, (IMG_SIZE,IMG_SIZE)).astype('float32')
+	#img = Image.fromarray(img, 'RGB').convert('L')
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	print('First: ', img.shape)
+	#img = imresize(img, (IMG_SIZE,IMG_SIZE)).astype('float32')
+	img = np.reshape(img, (1,IMG_SIZE, IMG_SIZE, 1))
 	img /= 255
-	img = img.reshape(1,IMG_SIZE,IMG_SIZE,1)
+	print(img)
+	exit()
+	#img = img.reshape(1,IMG_SIZE,IMG_SIZE,1)
 	prediction = model.predict(img)
 	if prediction < 0.1:
 		prediction = 'closed'
@@ -102,5 +110,5 @@ def evaluate(X_test, y_test):
 	print(acc * 100)
 
 if __name__ == '__main__':
-	train_generator , val_generator = collect()
-	train(train_generator,val_generator)
+	#train_generator , val_generator = collect()
+	#train(train_generator,val_generator)
