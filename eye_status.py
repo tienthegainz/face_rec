@@ -1,5 +1,5 @@
 import os
-#from PIL import Image
+from PIL import Image
 import numpy as np
 
 from keras.models import Sequential
@@ -89,11 +89,11 @@ def predict_eye(img, model):
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	print('First: ', img.shape)
 	#img = imresize(img, (IMG_SIZE,IMG_SIZE)).astype('float32')
-	img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
-	img /= 255
-	print(img)
-	exit()
-	#img = img.reshape(1,IMG_SIZE,IMG_SIZE,1)
+	img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+	img = img/255
+	print(img.shape)
+	img = img.reshape(1,IMG_SIZE,IMG_SIZE,1)
+	print(img.shape)
 	prediction = model.predict(img)
 	if prediction < 0.1:
 		prediction = 'closed'
@@ -112,5 +112,5 @@ def evaluate(X_test, y_test):
 if __name__ == '__main__':
 	#train_generator , val_generator = collect()
 	#train(train_generator,val_generator)
-	img = cv2.imread('dataset/1_real.jpg')
-	predict_eye(img, None)
+	#img = cv2.imread('dataset/1_real.jpg')
+	#predict_eye(img, None)

@@ -5,7 +5,8 @@ import numpy as np
 from tqdm import tqdm
 from collections import defaultdict
 from imutils.video import VideoStream
-from eye_status import * 
+from eye_status import *
+from keras.models import load_model
 
 def init():
     face_cascPath = 'haarcascade_frontalface_alt.xml'
@@ -24,7 +25,7 @@ def init():
     print("[LOG] Opening webcam ...")
     video_capture = VideoStream(src=0).start()
 
-    model = load_model()
+    model = load_model('models/eye_model.18-0.11.hdf5')
 
 
     print("[LOG] Collecting images ...")
@@ -33,7 +34,7 @@ def init():
         for file in files:
             if file.endswith("jpg"):
                 images.append(os.path.join(direc,file))
-    return (model,face_detector, open_eyes_detector, left_eye_detector,right_eye_detector, video_capture, images) 
+    return (model,face_detector, open_eyes_detector, left_eye_detector,right_eye_detector, video_capture, images)
 
 def process_and_encode(images):
     # initialize the list of known encodings and known names
@@ -46,7 +47,7 @@ def process_and_encode(images):
         image = cv2.imread(image_path)
         # Convert it from BGR to RGB
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-     
+
         # detect face in the image and get its location (square boxes coordinates)
         boxes = face_recognition.face_locations(image, model='hog')
 
@@ -56,14 +57,14 @@ def process_and_encode(images):
         # the person's name is the name of the folder where the image comes from
         name = image_path.split(os.path.sep)[-2]
 
-        if len(encoding) > 0 : 
+        if len(encoding) > 0 :
             known_encodings.append(encoding[0])
             known_names.append(name)
 
     return {"encodings": known_encodings, "names": known_names}
 
 def isBlinking(history, maxFrames):
-    """ @history: A string containing the history of eyes status 
+    """ @history: A string containing the history of eyes status
          where a '1' means that the eyes were closed and '0' open.
         @maxFrames: The maximal number of successive frames where an eye is closed """
     for i in range(maxFrames):
@@ -79,7 +80,7 @@ def detect_and_display(model, video_capture, face_detector, open_eyes_detector, 
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
+
         # Detect faces
         faces = face_detector.detectMultiScale(
             gray,
@@ -115,7 +116,7 @@ def detect_and_display(model, video_capture, face_detector, open_eyes_detector, 
             gray_face = gray[y:y+h,x:x+w]
 
             eyes = []
-            
+
             # Eyes detection
             # check first if eyes are open (with glasses taking into account)
             open_eyes_glasses = open_eyes_detector.detectMultiScale(
@@ -125,14 +126,14 @@ def detect_and_display(model, video_capture, face_detector, open_eyes_detector, 
                 minSize=(30, 30),
                 flags = cv2.CASCADE_SCALE_IMAGE
             )
-            # if open_eyes_glasses detect eyes then they are open 
+            # if open_eyes_glasses detect eyes then they are open
             if len(open_eyes_glasses) == 2:
                 eyes_detected[name]+='1'
                 for (ex,ey,ew,eh) in open_eyes_glasses:
                     cv2.rectangle(face,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-            
+
             # otherwise try detecting eyes using left and right_eye_detector
-            # which can detect open and closed eyes                
+            # which can detect open and closed eyes
             else:
                 # separate the face into left and right sides
                 left_face = frame[y:y+h, x+int(w/2):x+w]
