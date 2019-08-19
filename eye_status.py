@@ -1,5 +1,5 @@
 import os
-from PIL import Image
+#from PIL import Image
 import numpy as np
 
 from keras.models import Sequential
@@ -84,12 +84,12 @@ def train(train_generator, val_generator):
 	                    epochs=20
 	)
 
-def predict(img, model):
+def predict_eye(img, model):
 	#img = Image.fromarray(img, 'RGB').convert('L')
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	print('First: ', img.shape)
 	#img = imresize(img, (IMG_SIZE,IMG_SIZE)).astype('float32')
-	img = np.reshape(img, (1,IMG_SIZE, IMG_SIZE, 1))
+	img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
 	img /= 255
 	print(img)
 	exit()
@@ -112,3 +112,5 @@ def evaluate(X_test, y_test):
 if __name__ == '__main__':
 	#train_generator , val_generator = collect()
 	#train(train_generator,val_generator)
+	img = cv2.imread('dataset/1_real.jpg')
+	predict_eye(img, None)
